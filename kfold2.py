@@ -75,15 +75,13 @@ rs = 42
 X_tv, X_test, y_tv, y_test = train_test_split(X, y, test_size=0.2, random_state=rs)
 print(r'总共有 {} 个数据，其中训练验证集中有 {} 个数据，测试集中有 {} 个数据。'.format(len(X), len(X_tv), len(X_test)))
 
-# 在 X_tv 上进行 k 折交叉验证
+# 组合两个超参数，计算各种组合得到的验证集准确率的平均值
 k = 10
-kf = KFold(n_splits=k, random_state=rs, shuffle=True)
-val_accuracy = 0
-for idx, (train, val) in zip(range(k), kf.split(X_tv)):
-    X_train, y_train, X_val, y_val = X_tv[train], y_tv[train], X_tv[val], y_tv[val]
-    PLA_pocket(X_train, y_train)
-    split_train_accuracy = 1 - (len(X_train) - clf_score(X_train, y_train)) / 2 / len(X_train)
-    split_val_accuracy = 1 - (len(X_val) - clf_score(X_val, y_val)) / 2 / len(X_val)
-    print(r'第 {} 折，训练集准确率 {:.2%} ，验证集准确率 {:.2%}'.format(idx + 1, split_train_accuracy, split_val_accuracy))
-    val_accuracy += split_val_accuracy
-print(r'epochs = {}，验证集准确率的平均值为 {:.2%}。'.format(epochs, val_accuracy / k))
+for epochs in range(100, 500, 100):
+    kf = KFold(n_splits=k, random_state=rs, shuffle=True)
+    val_accuracy = 0
+    for idx, (train, val) in zip(range(k), kf.split(X_tv)):
+        X_train, y_train, X_val, y_val = X_tv[train], y_tv[train], X_tv[val], y_tv[val]
+        PLA_pocket(X_train, y_train)
+        val_accuracy += 1 - (len(X_val) - clf_score(X_val, y_val)) / 2 / len(X_val)
+    print(r'epochs = {}，k={}，验证集准确率的平均值为 {:.2%}。'.format(epochs, k, val_accuracy / k))
